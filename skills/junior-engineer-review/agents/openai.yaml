@@ -1,0 +1,4 @@
+interface:
+  display_name: "Junior Engineer Review"
+  short_description: "Sense-check agent code for maintainability"
+  default_prompt: "Use $junior-engineer-review to sense-check this agent-generated code for readability and maintainability."
