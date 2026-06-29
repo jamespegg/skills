@@ -1,6 +1,10 @@
 ---
 name: junior-engineer-review
-description: Sense-check agent-generated code for junior-engineer readability, maintainability, and safe modification. Use when reviewing code, diffs, or implementation plans created by an agent to ensure the result is simple, intuitive, locally understandable, easy to debug, explicit in control flow, appropriately abstracted, and explainable by a reasonably capable new team member without hidden context.
+description: Sense-check agent-generated code for junior software engineer readability, maintainability, and safe modification. Use when reviewing code, diffs, or implementation plans created by an agent to ensure the result is simple, intuitive, locally understandable, easy to debug, explicit in control flow, appropriately abstracted, and explainable by a reasonably capable new team member without hidden context.
+license: Apache-2.0
+metadata: 
+  author: jamespegg
+  version: "0.0.1"
 ---
 
 # Junior Engineer Review
