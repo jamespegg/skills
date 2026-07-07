@@ -1,6 +1,6 @@
 ---
 name: junior-engineer-review
-description: Sense-check agent-generated code for junior software engineer readability, maintainability, and safe modification. Use when reviewing code, diffs, or implementation plans created by an agent to ensure the result is simple, intuitive, locally understandable, easy to debug, explicit in control flow, appropriately abstracted, and explainable by a reasonably capable new team member without hidden context.
+description: Sense-check agent-generated code for junior software engineer readability, maintainability, and safe modification. Use whenever Codex makes code changes, reviews code, reviews diffs, or evaluates implementation plans created by an agent; after code changes, run this review in a loop until all findings are resolved or 10 total review loops have completed. Ensure the result is simple, intuitive, locally understandable, easy to debug, explicit in control flow, appropriately abstracted, and explainable by a reasonably capable new team member without hidden context.
 license: Apache-2.0
 metadata: 
   author: jamespegg
@@ -22,6 +22,16 @@ Treat the main test as total cognitive load. Good code should feel obvious in it
 - Preserve useful elegance, but reject niche language features, compressed expressions, and clever flows that make the code harder to explain.
 
 ## Review Process
+
+Always run this review after code changes, even when the user did not ask for a separate review. When code changes are made, run this review as a resolution loop:
+
+1. Review the changed code using the checklist below.
+2. If findings exist, fix every finding that is actionable and within scope.
+3. Re-run the review after the fixes.
+4. Continue until a review finds no unresolved findings, or until 10 total review loops have completed.
+5. If the loop reaches 10 reviews and findings remain, stop changing code and report the unresolved findings, why they remain, and what would be needed next.
+
+For each review loop:
 
 1. Identify the generated or changed code and the behavior it is meant to support.
 2. Trace the main execution path from entry point to side effects.
@@ -55,5 +65,7 @@ Lead with findings ordered by severity. For each finding, include:
 - Suggested change: a simpler direction, not a large rewrite unless needed.
 
 If the code passes the sense check, say that clearly and note any residual risks or test gaps.
+
+When this skill runs after code changes, include the final loop count and whether the loop ended because all findings were resolved or because the 10-loop cap was reached.
 
 Keep the tone practical and kind. The aim is to make generated code easier for humans to own, not to punish harmless differences in style.
