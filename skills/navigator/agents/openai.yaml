@@ -1,0 +1,4 @@
+interface:
+  display_name: "Navigator"
+  short_description: "Find where work is and route to the next workflow"
+  default_prompt: "Use $navigator to determine where this work is in the engineering process, visualise progress, and recommend the next workflow without starting execution until I approve."
