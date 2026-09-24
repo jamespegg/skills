@@ -4,7 +4,7 @@ description: Route engineering work to the right next workflow from natural-lang
 license: Apache-2.0
 metadata:
   author: jamespegg
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 # Navigator
@@ -28,7 +28,9 @@ Navigator is **read-only and orientational**. It may inspect repository state, d
 - Prefer current repository and tracker evidence over remembered discussion.
 - Skip irrelevant workflow stages rather than forcing every task through the same pipeline.
 - Distinguish orientation from authorisation. Recommend the next action, then wait for explicit approval before executing it.
-- If several independent top-level workstreams are active and the intended one is not clear, ask the user which one to continue.
+- When choosing work for a person or agent, use assignment and scheduling metadata to disambiguate before asking the user to choose.
+- Treat GitHub Projects metadata as useful scheduling evidence when available, not as a mandatory workflow dependency.
+- If several independent workstreams remain equally plausible after considering actor, assignment, status, dependencies, priority, and project order, ask the user which one to continue.
 - If evidence conflicts or the current state cannot be determined safely, say what is ambiguous and ask one focused question.
 
 ## Entry behaviour
@@ -136,7 +138,9 @@ Use the smallest relevant set of evidence, typically:
 
 - applicable repository `AGENTS.md` and workflow guidance;
 - active GitHub issues and parent/child relationships;
+- issue assignees;
 - issue dependencies or explicit dependency sections;
+- GitHub Projects status, priority, iteration, and item ordering when available;
 - open pull requests and their linked issues;
 - current branch/worktree state where available;
 - durable specs, ADRs, context documents, or plans referenced by the active work;
@@ -144,21 +148,55 @@ Use the smallest relevant set of evidence, typically:
 
 Do not scan unrelated repositories.
 
-### Multiple active workstreams
+### Actor-aware work selection
 
-If there is exactly one clearly relevant active top-level workstream, select it.
+When the user asks what to do next, determine the **actor** whose work is being selected.
 
-If multiple independent top-level workstreams are active and the user's intent does not identify one, present the minimal choices and ask which to continue.
+Prefer, in order:
 
-Example:
+1. an actor explicitly named in the request;
+2. the authenticated GitHub user when the request is personal ("what's next for me?");
+3. an agent or teammate identity established by the current workflow;
+4. if actor identity materially changes the result and cannot be inferred, ask one focused question.
 
-> I found two independent active workstreams:
-> 1. Phase A compiler work
-> 2. GPU backend experiment
->
-> Which one do you want to continue?
+Do not use assignment as a proxy for importance. Assignment answers "who should do this?"; project status, dependencies, priority, and ordering answer "when should it be done?".
 
-Do not choose arbitrarily.
+When GitHub Projects is available, prefer structured workflow metadata over labels for scheduling. A lightweight convention is:
+
+- **Status:** Backlog, Ready, In Progress, In Review, Done, and optionally Blocked;
+- **Priority:** a project-defined single-select field such as P0/P1/P2/P3 or High/Normal/Low;
+- **Assignee:** GitHub's native issue assignee;
+- **Project position:** manual ordering within a status/priority grouping as the final scheduling tie-breaker;
+- **Iteration:** optional; use it when the project intentionally scopes work to a current iteration.
+
+Treat equivalent project-specific status names semantically rather than requiring these exact strings.
+
+Do **not** introduce or depend on labels such as `next`, `next-up`, or `ready-next` when the same state can be derived from structured fields. Labels should normally classify work (for example bug, frontend, security, tech-debt, experiment), not duplicate scheduling state.
+
+#### Selection order
+
+For a known actor, select work using this order:
+
+1. **Continue assigned work already in flight.**
+   - Prefer an assigned In Progress issue, active implementation branch, or linked open PR.
+   - If several are in flight, prefer the item with the clearest active implementation evidence; otherwise use configured priority then project position.
+2. **Select assigned Ready work.**
+   - Exclude blocked items and items with unresolved prerequisites.
+   - Prefer higher configured priority, then higher project position.
+3. **Notice assigned blocked work without stopping selection.**
+   - Report a relevant blocker when useful, but continue looking for another actionable item.
+4. **Fall back to unassigned Ready work.**
+   - Exclude blocked items and unresolved prerequisites.
+   - Prefer higher configured priority, then higher project position.
+   - Recommend claiming/assigning the item before or as implementation begins.
+5. **If nothing is Ready, route the backlog/planning state.**
+   - Inspect whether discovery, specification, decomposition, review, or replanning is the actual next activity using Navigator's normal routing rules.
+
+Dependencies and explicit replanning gates always override assignment, priority, and board order. A high-priority item with an unresolved prerequisite is not actionable.
+
+If GitHub Projects is absent or inaccessible, degrade gracefully: use current implementation evidence, assignees, dependencies, issue state, and any explicit ordering in durable plans. Do not require a Project merely to choose work.
+
+If multiple independent workstreams remain equally plausible after applying these rules, present the minimal choices and ask which to continue. Do not choose arbitrarily.
 
 ### Determine current stage
 
@@ -167,13 +205,13 @@ Infer the next stage from evidence:
 - unresolved decisions or investigation → `research`, `wayfinder`, `grill-with-docs`, or `domain-modeling`;
 - decisions settled but no durable spec where one is warranted → `to-spec`;
 - spec exists but execution work is not decomposed and decomposition is warranted → `to-tickets`;
-- tickets exist → identify the next unblocked execution-sized ticket and recommend `implement`;
-- implementation is in flight → recommend continuing `implement` on the current ticket/branch;
+- tickets exist → identify the next unblocked execution-sized ticket using actor-aware work selection and recommend `implement`;
+- implementation is in flight → recommend continuing `implement` on the current assigned ticket/branch;
 - implementation appears complete but not independently reviewed → `code-review`;
 - review has actionable findings → `implement` the fixes;
 - review is clean and the PR is otherwise ready → report that integration/merge is next rather than inventing another skill.
 
-When selecting the next ticket, respect dependencies, in-flight work, closed/completed work, and explicit replanning gates. Prefer a currently active ticket/PR over starting a second parallel item unless the workflow explicitly permits parallelism.
+When selecting the next ticket, respect dependencies, in-flight work, closed/completed work, actor assignment, project status, configured priority, project ordering, and explicit replanning gates. Prefer a currently active assigned ticket/PR over starting a second parallel item unless the workflow explicitly permits parallelism.
 
 ## Progress visualisation
 
@@ -250,6 +288,22 @@ Why
 The request defines an outcome, but there is not yet enough evidence to choose an implementation safely.
 ```
 
+For unassigned team work, make the ownership transition explicit:
+
+```text
+NEXT
+#146 — Add retry behaviour
+
+Status
+Ready · P1 · Unassigned
+
+Recommended action
+→ claim #146 and implement
+
+Why
+There is no assigned Ready or In Progress work for the actor, and #146 is the highest-priority unblocked item in the team queue.
+```
+
 Then ask whether the user wants to proceed.
 
 Do not execute the target workflow until the user explicitly authorises it with language such as "go ahead", "proceed", "do it", "implement it", or equivalent.
@@ -281,7 +335,9 @@ Use these as guidance, not rigid keyword matching.
 - Do not route every task through `to-spec` or `to-tickets`.
 - Do not route uncertain work directly to implementation merely because code can be written.
 - Do not confuse an open PR with unfinished implementation; inspect its state when that distinction matters.
-- Do not infer that the newest issue is the next issue. Respect dependencies and current work.
+- Do not infer that the newest issue is the next issue. Respect dependencies, assignment, project status, configured priority, ordering, and current work.
+- Do not create or rely on a derived `next` label when structured scheduling metadata can determine the next item.
+- Do not mutate assignees, Project fields, issue state, branches, or implementation artefacts while only orienting.
 - Do not treat historical chat as authoritative when current repository/tracker evidence is available.
 - Do not manufacture a single "current plan" if several unrelated plans are active.
 - Do not add workflow artefacts solely to make the progress visual look complete.
