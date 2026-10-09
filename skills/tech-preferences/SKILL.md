@@ -53,7 +53,7 @@ Use these defaults for James's personal software projects. This skill is about *
 
 ## Verification, dependencies and documentation
 
-- Test meaningful behaviour changes, not necessarily TDD; cover success, failure and recovery without tests that merely restate implementation.
+- **TDD is the default for behavioural implementation and bug fixes.** Follow Matt Pocock's `implement` → `tdd` workflow: agree useful public testing seams, write one failing behaviour test before its implementation (red), implement only enough to pass (green), and repeat in small vertical slices. Test externally observable success, failure and recovery; use independently derived expected results, not tests that merely restate the code. Use an explicitly justified exception for non-behavioural or impractical-to-test work rather than creating low-value tests.
 - Go `testing` package + Testcontainers for integration tests. Frontend Vitest + React Testing Library + Playwright.
 - Enforce formatter, linter, type checks and security scanning in CI; checks should enforce real invariants.
 - Use focused dependencies; embrace genuinely useful improvements rather than avoiding modern tools. Automate **minor/patch** updates; **major** upgrades require approval. Unfamiliar dependencies also require approval regardless of version.

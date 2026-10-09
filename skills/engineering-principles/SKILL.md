@@ -43,7 +43,7 @@ Language-independent defaults for small projects maintained by one person and fu
 
 ## Verification and evolution
 
-- **Test observable behaviour, not incidental implementation.** Exercise important success, failure and recovery paths, preferably through executable boundaries. Static checks must enforce real invariants.
+- **Test observable behaviour, not incidental implementation.** Prefer test-first red → green vertical slices at agreed public seams for behaviour changes; exercise important success, failure and recovery paths with independently grounded expectations. Don't write brittle implementation-coupled or tautological tests just to satisfy a process. Static checks must enforce real invariants.
 - **Small complete changes.** Solve the problem without unrelated refactoring, hypothetical infrastructure or abandoned compatibility layers. Preserve contracts unless deliberately changing them.
 - **Durable discoverable decisions.** Document non-obvious constraints, rationale and operations where maintainers will look, not only in chat. Avoid verbose or duplicated instructions.
 - **Make the codebase teach its own architecture.** Clear layout, contracts and executable conventions should reduce agent instruction needs. If agents repeatedly fail, improve structure, documentation or checks before adding standing rules.
