@@ -1,0 +1,4 @@
+interface:
+  display_name: "Tech Preferences"
+  short_description: "Choose technology from established preferences"
+  default_prompt: "Use $tech-preferences to select a suitable stack, flag meaningful deviations early and respect recorded decisions."
