@@ -1,0 +1,4 @@
+interface:
+  display_name: "Verifiable Trust"
+  short_description: "Verify AI work and bound its consequences"
+  default_prompt: "Use $verifiable-trust to assess independent verification, scope, exposure, reversibility and approval gates."

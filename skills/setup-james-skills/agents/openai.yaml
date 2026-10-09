@@ -1,0 +1,4 @@
+interface:
+  display_name: "Setup James Skills"
+  short_description: "Reconcile personal guidance in AGENTS.md"
+  default_prompt: "Use $setup-james-skills to update this repository's root AGENTS.md with the three guidance skill references, preserving other instructions."

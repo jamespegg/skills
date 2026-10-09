@@ -1,0 +1,4 @@
+interface:
+  display_name: "Engineering Principles"
+  short_description: "Optimise design for local reasoning"
+  default_prompt: "Use $engineering-principles to assess cohesion, code navigation, explicit boundaries and maintainability."
