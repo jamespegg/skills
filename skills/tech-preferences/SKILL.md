@@ -4,7 +4,7 @@ description: Apply James's technology choices and exclusions when selecting stac
 license: Apache-2.0
 metadata:
   author: jamespegg
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # Tech Preferences
@@ -24,6 +24,7 @@ Use these defaults for James's personal software projects. This skill is about *
 | Classification | Guidance |
 | --- | --- |
 | **Prefer** | Go for new backends, CLIs and developer tools. Go standard library first; small focused libraries when useful. |
+| **Go CLIs** | Use **Cobra** by default for command structure, flags and help. Add **Viper** when configuration warrants combining sources such as flags, environment variables and config files; avoid Viper for simple flag-only tools. A tiny one-off program may use the standard library directly when Cobra would add needless complexity. |
 | **Prefer** | React + TypeScript + Vite for frontends, npm as package manager, ESLint and Prettier. Zustand for shared state. |
 | **Accept** | Tailwind CSS; choose component, routing, query, form and validation libraries case by case. No mandated design system. |
 | **Strongly avoid** | Next.js unless there is an exceptionally strong, concrete reason over React + Vite. Ask before introducing. |
