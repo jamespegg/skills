@@ -4,7 +4,7 @@ description: Create or reconcile a repository's root AGENTS.md references to the
 license: Apache-2.0
 metadata:
   author: jamespegg
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # Setup James Skills
@@ -24,7 +24,7 @@ This is a **mutating setup skill**. Explicit invocation authorises a bounded `AG
 3. Find the exact marker pair `<!-- james-skills:start -->` and `<!-- james-skills:end -->`. If both appear *exactly once* in the right order, replace **only the contents of that managed block** with the canonical block below if needed. If markers are incomplete, duplicated or malformed, preserve the file and report the ambiguity rather than guessing.
 4. If no managed block exists, find any equivalent existing personal-guidance section. Update that section in place where this is unambiguous to avoid duplication. Otherwise append the canonical block separated by blank lines; create root `AGENTS.md` if absent.
 5. Keep all unrelated instructions untouched; avoid whole-file reformatting. Follow repository line-ending conventions and ensure a final newline.
-6. Re-read and diff the result. Confirm exactly one managed block and each of the three skill references once **within the block**. Re-running must make no changes. Report whether created/updated/already correct, and any unavailable skills.
+6. Re-read and diff the result. Confirm exactly one managed block and each of the three skill references once **within the block**, with the instruction to read their full contents before implementation and pass that requirement to workers. Re-running must make no changes. Report whether created/updated/already correct, and any unavailable skills.
 
 ## Canonical managed block
 
@@ -34,15 +34,19 @@ Copy the following exact block, including markers:
 <!-- james-skills:start -->
 ## Personal engineering guidance
 
-Apply these skills when relevant, without turning every small change into ceremony:
+These skills are **standing constraints**, not alternatives to Matt Pocock's workflow. **Before implementing or changing code** (including through `/implement`, `/implement-spec`, `/tdd` or direct implementation), read the full installed content of all three:
 
-- **`tech-preferences`** — Prefer James's established stack and exclusions when selecting technology or considering migrations.
-- **`engineering-principles`** — Optimise for local reasoning through cohesive capabilities, clear names and explicit dependencies.
-- **`verifiable-trust`** — Independently verify AI work and bound permissions, time, data, money and irreversible actions.
+- **`tech-preferences`** — Preferred technologies, exclusions and rules for existing architecture decisions.
+- **`engineering-principles`** — Local reasoning, cohesive capabilities, clear boundaries and explicit dependencies.
+- **`verifiable-trust`** — Independent verification, bounded authority and recoverability.
 
-Documented project decisions take precedence over generic defaults. Flag meaningful deviations early, recommend an approach and ask before changing established technology. When James chooses to retain a deviation, record the decision and don't reopen it without a request or material new evidence.
+Apply their guidance throughout implementation and review. **Skill availability or a reference here does not mean the agent has read the skill.** Read each once per task, not at every test cycle; for trivial documentation-only work, apply guidance proportionately.
 
-Use installed skill content when available; these references are not the full guidance. If a skill is missing, report that rather than pretending it was applied. Source: [jamespegg/skills](https://github.com/jamespegg/skills).
+When delegating implementation, explicitly require each worker to read and apply these skills in its own context. Don't assume the parent's loaded skill content is inherited. If a skill is unavailable, say so rather than silently proceeding as if it were applied.
+
+Documented project decisions take precedence over generic defaults. Flag meaningful deviations **before implementing**, recommend an approach and ask before changing established technology. When James chooses to retain a deviation, record the decision and don't reopen it without a request or material new evidence.
+
+Source: [jamespegg/skills](https://github.com/jamespegg/skills).
 <!-- james-skills:end -->
 ```
 
