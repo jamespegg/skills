@@ -4,7 +4,7 @@ description: Apply James's technology choices and exclusions when selecting stac
 license: Apache-2.0
 metadata:
   author: jamespegg
-  version: "1.1.0"
+  version: "1.2.0"
 ---
 
 # Tech Preferences
@@ -24,7 +24,7 @@ Use these defaults for James's personal software projects. This skill is about *
 | Classification | Guidance |
 | --- | --- |
 | **Prefer** | Go for new backends, CLIs and developer tools. Go standard library first; small focused libraries when useful. |
-| **Go CLIs** | Use **Cobra** by default for command structure, flags and help. Add **Viper** when configuration warrants combining sources such as flags, environment variables and config files; avoid Viper for simple flag-only tools. A tiny one-off program may use the standard library directly when Cobra would add needless complexity. |
+| **Go CLIs** | Use **Cobra** for maintained Go CLIs, including single-command tools. Scaffold with **`cobra-cli`** (both `init` and `add`) rather than hand-building the command structure. Add **Viper** only when configuration complexity warrants it. |
 | **Prefer** | React + TypeScript + Vite for frontends, npm as package manager, ESLint and Prettier. Zustand for shared state. |
 | **Accept** | Tailwind CSS; choose component, routing, query, form and validation libraries case by case. No mandated design system. |
 | **Strongly avoid** | Next.js unless there is an exceptionally strong, concrete reason over React + Vite. Ask before introducing. |
@@ -32,6 +32,14 @@ Use these defaults for James's personal software projects. This skill is about *
 | **Scripting** | Just as task runner. Only tiny development glue in Bash; no substantial Bash scripts. Go for reusable tools. Python mainly for machine learning, not general scripting. |
 | **Explore** | Microfrontends and Module Federation, not defaults. |
 | **Quality** | Responsive and accessible UI, proportional to project maturity. |
+
+## Go CLI conventions
+
+- For **maintained CLI applications**, initialise the command structure with `cobra-cli init` in that executable's directory inside the existing Go module. Keep the generated `main.go` and `cmd/root.go` pattern; in a multi-executable monorepo this naturally becomes `cmd/<binary>/cmd/root.go` without an extra Go module. Use `cobra-cli add` when adding commands.
+- Keep Cobra command files focused on flags, help, argument validation and dispatch. Put substantive application behaviour in appropriately named `internal/<capability>` packages; avoid additional framework layers.
+- When adopting Cobra for an **existing CLI**, generate into an empty/disposable location first rather than overwriting code. Adapt the generated structure to preserve documented flags, positional arguments, stdin, help, signals and exit statuses. Retain idiomatic generator conventions wherever compatible; justify exceptions against real behaviour.
+- Use **Viper** only for genuine multi-source configuration requirements (e.g. coordinated flags, environment variables and config files). The generator's `--viper` option is appropriate only then; a handful of flags or one environment variable do not justify it.
+- Pure background services without a meaningful CLI need not use Cobra. Standard-library-only argument handling is reserved for disposable or exceptionally trivial one-off tools, **not** maintained single-command applications.
 
 ## Applications, interfaces and data
 
