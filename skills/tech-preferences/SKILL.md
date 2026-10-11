@@ -4,7 +4,7 @@ description: Apply James's technology choices and exclusions when selecting stac
 license: Apache-2.0
 metadata:
   author: jamespegg
-  version: "1.2.0"
+  version: "1.3.0"
 ---
 
 # Tech Preferences
@@ -24,7 +24,7 @@ Use these defaults for James's personal software projects. This skill is about *
 | Classification | Guidance |
 | --- | --- |
 | **Prefer** | Go for new backends, CLIs and developer tools. Go standard library first; small focused libraries when useful. |
-| **Go CLIs** | Use **Cobra** for maintained Go CLIs, including single-command tools. Scaffold with **`cobra-cli`** (both `init` and `add`) rather than hand-building the command structure. Add **Viper** only when configuration complexity warrants it. |
+| **Go CLIs** | Prefer standard-library argument parsing for headless executables and simple commands. Use **Cobra** when a maintained, user-facing CLI benefits from a structured command tree, flags, help or completion; scaffold that CLI with **`cobra-cli`**. Add **Viper** only when configuration complexity warrants it. |
 | **Prefer** | React + TypeScript + Vite for frontends, npm as package manager, ESLint and Prettier. Zustand for shared state. |
 | **Accept** | Tailwind CSS; choose component, routing, query, form and validation libraries case by case. No mandated design system. |
 | **Strongly avoid** | Next.js unless there is an exceptionally strong, concrete reason over React + Vite. Ask before introducing. |
@@ -35,11 +35,11 @@ Use these defaults for James's personal software projects. This skill is about *
 
 ## Go CLI conventions
 
-- For **maintained CLI applications**, initialise the command structure with `cobra-cli init` in that executable's directory inside the existing Go module. Keep the generated `main.go` and `cmd/root.go` pattern; in a multi-executable monorepo this naturally becomes `cmd/<binary>/cmd/root.go` without an extra Go module. Use `cobra-cli add` when adding commands.
-- Keep Cobra command files focused on flags, help, argument validation and dispatch. Put substantive application behaviour in appropriately named `internal/<capability>` packages; avoid additional framework layers.
-- When adopting Cobra for an **existing CLI**, generate into an empty/disposable location first rather than overwriting code. Adapt the generated structure to preserve documented flags, positional arguments, stdin, help, signals and exit statuses. Retain idiomatic generator conventions wherever compatible; justify exceptions against real behaviour.
-- Use **Viper** only for genuine multi-source configuration requirements (e.g. coordinated flags, environment variables and config files). The generator's `--viper` option is appropriate only then; a handful of flags or one environment variable do not justify it.
-- Pure background services without a meaningful CLI need not use Cobra. Standard-library-only argument handling is reserved for disposable or exceptionally trivial one-off tools, **not** maintained single-command applications.
+- **Choose by command contract, not by executable count.** A Kubernetes init process, daemon or a simple one-command tool generally needs only standard-library `flag` (or no parser). Don't introduce Cobra, Viper, generated command packages or completion code for their own sake.
+- Use **Cobra** when a maintained interactive/user-facing CLI has enough commands, flag behaviour, completion or help requirements to benefit materially. For new Cobra commands, scaffold with `cobra-cli init`/`add` inside the existing module; keep its command files focused on parsing and dispatch, with behaviour in focused `internal/<capability>` packages.
+- For existing CLIs, inspect actual callers and behaviour before choosing a parser or migrating. Preserve documented flags, positional arguments, stdin, signals and exit statuses; generate into a disposable location rather than overwriting existing files.
+- Use **Viper** only for genuine multi-source configuration requirements. Prefer plain environment variables or simple flags for a handful of settings.
+- Prefer idiomatic, explicit Go over clever or prescriptive style transformations. Use [Go Code Review Comments](https://go.dev/wiki/CodeReviewComments) and the [Google Go Style Guide](https://google.github.io/styleguide/go/guide) as practical references; external skills and arbitrary numerical style thresholds never override readability or a documented project decision.
 
 ## Applications, interfaces and data
 

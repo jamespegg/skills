@@ -4,7 +4,7 @@ description: Use when designing, implementing, refactoring or reviewing architec
 license: Apache-2.0
 metadata:
   author: jamespegg
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # Architecture and Engineering Principles
@@ -12,6 +12,14 @@ metadata:
 > **Optimise for local reasoning.** A developer should be able to find, understand, change and verify a capability by examining a small, obvious part of the codebase, without navigating layers of indirection or hidden dependencies.
 
 Language-independent defaults for small projects maintained by one person and future coding agents. Prefer the simplest **coherent** design meeting actual requirements. Apply rigour proportionately, never mechanically. See `tech-preferences` for what to build with, and `verifiable-trust` for AI risk and permission boundaries.
+
+## Justify complexity before implementing it
+
+- **Challenge the requirement, not only the code.** Before adding a component, behaviour, dependency or defensive mechanism, identify the concrete need and the simplest end-to-end outcome. Deleting an unnecessary requirement is often better than implementing it elegantly.
+- **Distinguish evidence from hypotheticals.** Defend against credible failures according to their likelihood, consequence and recoverability; do not build elaborate machinery for speculative scenarios. Preserve strong safeguards for credentials, permissions and irreversible persistent-state changes.
+- **Make complexity earn its keep.** Each new concept, validation, layer, configuration option or test should reduce a real risk or enable a real capability. Reuse the platform or an existing installer where it removes work, rather than rebuilding its responsibilities.
+- **Prefer a small complete solution.** Avoid temporary compatibility code in inactive replacements when the cutover will remove it, unless a real consumer or migration step needs it. Do not solve duplication by introducing a framework that is harder to navigate than the duplicated code.
+- **Revisit the finished design.** After behaviour works, check whether responsibilities, branches or dependencies can disappear without weakening essential behaviour. Optimise for fewer concepts and faster comprehension, not minimum lines or arbitrary limits.
 
 ## Structure and navigation
 
@@ -54,11 +62,11 @@ Language-independent defaults for small projects maintained by one person and fu
 
 Before adding a package, dependency, abstraction or process, consider:
 
-1. Where would someone naturally look for this capability?
-2. Can it be understood and changed without tracing unrelated files or hidden wiring?
-3. Does this boundary correspond to a real responsibility or independent reason to change?
-4. Is this abstraction/dependency truly simpler than a direct approach?
-5. Can key behaviour and failures be verified, and the change recovered?
+1. Is the underlying requirement necessary, and what is the smallest outcome that solves it?
+2. Where would someone naturally look for this capability, and can it be understood locally?
+3. Does this boundary correspond to a real responsibility or reason to change?
+4. Does this complexity address an evidenced need or consequential risk more simply than the direct approach?
+5. Can important behaviour and failures be verified, and any consequential change recovered?
 
 This is a lightweight decision aid, **not a mandatory checklist for every edit**. When a convention harms navigation, name the trade-off and choose the simpler design.
 
