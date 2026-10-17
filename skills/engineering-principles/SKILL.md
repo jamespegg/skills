@@ -4,7 +4,7 @@ description: Use when designing, implementing, refactoring or reviewing architec
 license: Apache-2.0
 metadata:
   author: jamespegg
-  version: "1.1.0"
+  version: "1.2.0"
 ---
 
 # Architecture and Engineering Principles
@@ -57,6 +57,18 @@ Language-independent defaults for small projects maintained by one person and fu
 - **Make the codebase teach its own architecture.** Clear layout, contracts and executable conventions should reduce agent instruction needs. If agents repeatedly fail, improve structure, documentation or checks before adding standing rules.
 - **Self-explanatory over instruction-dependent systems.** Documentation should preserve intent and non-obvious choices, not compensate for confusing code.
 - **Proportionate rigour.** Fast reversible learning for experiments; stronger security, observability, verification and recovery for production or consequential changes.
+
+## Testing and CI investment
+
+Tests, fixtures and CI are software with ongoing maintenance and runtime costs. For a small, recoverable side project, optimise for useful confidence and rapid feedback, not the largest possible test inventory.
+
+- **Justify each distinct test.** Name the realistic failure and consequence it detects, and check whether another test already covers that behaviour. Do not turn every branch, transient migration or historical incident into a permanent regression matrix. Keep stronger coverage for credentials, permissions, destructive writes and difficult-to-recover state.
+- **Test once at the cheapest meaningful boundary.** Prefer local behaviour and contract tests, a small number of executable/integration checks for real boundaries, and a minimal assembled-image smoke check for packaging. Running the same scenarios again at every layer is not automatically more confidence.
+- **Avoid paying real time for synthetic time.** Inject controllable retry delays or clocks where practical; only exercise real timing, process signals and container orchestration where that behaviour is itself the risk. A heavy fixture needs a clearly distinct reason to exist.
+- **Choose manual acceptance deliberately.** Infrequent external-service, historical-upgrade and operator-only scenarios with low impact and easy recovery may be better covered by a short documented human smoke check. Automate scenarios repeated often or difficult to inspect accurately.
+- **Keep the default feedback loop small.** Run fast, consequential checks on routine PRs. Make broad migration matrices, expensive full-image exercises and environment-dependent checks opt-in or release-specific when their extra confidence merits the wait. Don't invent gates or CI infrastructure to look comprehensive.
+- **Profile before parallelising.** Measure test/package/job time, avoid unnecessary sequential dependencies, and parallelise independent work only when resource limits and artefact publication safety permit it. Cancel obsolete PR runs where safe, but do not cancel required immutable release builds.
+- **Delete superseded verification.** Once a migration is finished or a test's failure can no longer affect the current contract, simplify or remove it; update old release instructions and decisions when changing the required validation tier.
 
 ## Quick design check
 
