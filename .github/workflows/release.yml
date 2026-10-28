@@ -1,0 +1,148 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Semantic version bump (first release: choose major for v2.0.0)'
+        required: true
+        type: choice
+        default: patch
+        options:
+          - major
+          - minor
+          - patch
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Version and publish skills
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate release branch
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          REF: ${{ github.ref }}
+        run: |
+          if [[ "$REF" != "refs/heads/$DEFAULT_BRANCH" ]]; then
+            echo "Releases must run from $DEFAULT_BRANCH, not $REF" >&2
+            exit 1
+          fi
+
+      - name: Check out repository with tags
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Test packaging logic
+        run: python3 -m unittest discover -s tests -v
+
+      - name: Calculate release version
+        id: version
+        shell: bash
+        env:
+          BUMP: ${{ inputs.bump }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git fetch origin "$DEFAULT_BRANCH" --tags
+          if [[ "$(git rev-parse HEAD)" != "$(git rev-parse "origin/$DEFAULT_BRANCH")" ]]; then
+            echo 'The default branch changed after this run started. Run Release again.' >&2
+            exit 1
+          fi
+
+          latest="$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' \
+            | grep -E '^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$' \
+            | sort -V | tail -n 1 || true)"
+
+          # Recover a previous run that pushed the versioned commit and tag but
+          # failed while uploading release assets. Never bump a second time.
+          retry=false
+          if [[ -n "$latest" ]] && [[ "$(git rev-list -n 1 "$latest")" == "$(git rev-parse HEAD)" ]] \
+            && ! gh release view "$latest" >/dev/null 2>&1; then
+            version="${latest#v}"
+            retry=true
+          elif [[ -z "$latest" ]]; then
+            if [[ "$BUMP" != major ]]; then
+              echo 'The first release must be Major, establishing v2.0.0.' >&2
+              exit 1
+            fi
+            version='2.0.0'
+          else
+            IFS=. read -r major minor patch <<< "${latest#v}"
+            case "$BUMP" in
+              major) version="$((major + 1)).0.0" ;;
+              minor) version="${major}.$((minor + 1)).0" ;;
+              patch) version="${major}.${minor}.$((patch + 1))" ;;
+              *) echo "Unsupported bump: $BUMP" >&2; exit 1 ;;
+            esac
+          fi
+
+          tag="v${version}"
+          if [[ "$retry" != true ]] && git rev-parse --verify --quiet "refs/tags/$tag" >/dev/null; then
+            echo "Tag already exists: $tag" >&2
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "previous=$latest" >> "$GITHUB_OUTPUT"
+          echo "retry=$retry" >> "$GITHUB_OUTPUT"
+          echo "Releasing $tag"
+
+      - name: Update metadata and build skill ZIPs
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: python3 scripts/release_skills.py --version "$VERSION" --output dist
+
+      - name: Commit and tag versioned skills
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          RETRY: ${{ steps.version.outputs.retry }}
+        run: |
+          set -euo pipefail
+          if [[ "$RETRY" == true ]]; then
+            git diff --exit-code -- skills/
+            echo "Resuming publication for $TAG"
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -- skills/
+          if git diff --cached --quiet; then
+            echo 'No version metadata changed; refusing to create an empty release commit.' >&2
+            exit 1
+          fi
+          git commit -m "chore(release): $TAG"
+          git tag -a "$TAG" -m "Release $TAG"
+          # Push branch and tag together; neither should be published alone.
+          git push --atomic origin "HEAD:refs/heads/$DEFAULT_BRANCH" "refs/tags/$TAG"
+
+      - name: Create GitHub Release with every skill
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.version.outputs.tag }}
+          PREVIOUS: ${{ steps.version.outputs.previous }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          assets=(dist/*.zip)
+          if (( ${#assets[@]} == 0 )); then
+            echo 'No ZIP assets found' >&2
+            exit 1
+          fi
+          args=(release create "$TAG" "${assets[@]}" --verify-tag --title "$TAG" --generate-notes)
+          if [[ -n "$PREVIOUS" && "$PREVIOUS" != "$TAG" ]]; then
+            args+=(--notes-start-tag "$PREVIOUS")
+          fi
+          gh "${args[@]}"
+          echo "Released $TAG with ${#assets[@]} skill ZIPs" >> "$GITHUB_STEP_SUMMARY"
