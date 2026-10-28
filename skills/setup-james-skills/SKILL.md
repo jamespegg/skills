@@ -4,7 +4,7 @@ description: Create or reconcile a repository's root AGENTS.md references to the
 license: Apache-2.0
 metadata:
   author: jamespegg
-  version: "1.1.0"
+  version: "2.0.0"
 ---
 
 # Setup James Skills
