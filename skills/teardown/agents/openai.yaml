@@ -1,0 +1,4 @@
+interface:
+  display_name: "Teardown"
+  short_description: "Walk a repository and capture your review notes"
+  default_prompt: "Use $teardown to walk through this repository with me and save my review notes for another session."

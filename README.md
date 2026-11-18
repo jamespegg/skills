@@ -5,6 +5,7 @@ Reusable engineering skills for James's personal projects.
 | Skill | Purpose |
 | --- | --- |
 | [Junior Engineer Review](skills/junior-engineer-review/SKILL.md) | Check AI-generated code for human readability and maintainability. |
+| [Teardown](skills/teardown/SKILL.md) | Walk through a repository by voice or chat and capture your review for another session. |
 | [Tech Preferences](skills/tech-preferences/SKILL.md) | Choose preferred technology, explore alternatives deliberately and avoid excluded tools. |
 | [Engineering Principles](skills/engineering-principles/SKILL.md) | Design code for local reasoning and simple operations. |
 | [Verifiable Trust](skills/verifiable-trust/SKILL.md) | Independently verify AI work and bound autonomy. |
