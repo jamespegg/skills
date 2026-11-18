@@ -4,7 +4,7 @@ description: Sense-check agent-generated code for junior software engineer reada
 license: Apache-2.0
 metadata: 
   author: jamespegg
-  version: "2.0.0"
+  version: "2.1.0"
 ---
 
 # Junior Engineer Review
